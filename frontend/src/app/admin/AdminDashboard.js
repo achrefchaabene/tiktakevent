@@ -18,6 +18,8 @@ export default function AdminDashboard() {
   const [token, setToken] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [adminName, setAdminName] = useState("Admin");
+  const [canCreateAdmin, setCanCreateAdmin] = useState(false);
   const [categories, setCategories] = useState([]);
   const [contents, setContents] = useState([]);
   const [categoryName, setCategoryName] = useState("");
@@ -44,6 +46,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadData();
+    loadSetupStatus();
   }, []);
 
   async function request(path, options = {}) {
@@ -80,6 +83,38 @@ export default function AdminDashboard() {
       setContents(contentData);
     } catch {
       setMessage("Impossible de charger les donnees.");
+    }
+  }
+
+  async function loadSetupStatus() {
+    try {
+      const data = await request("/auth/setup-status");
+      setCanCreateAdmin(data.canCreateAdmin);
+    } catch {
+      setCanCreateAdmin(false);
+    }
+  }
+
+  async function createFirstAdmin(event) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const data = await request("/auth/setup-admin", {
+        method: "POST",
+        body: JSON.stringify({ name: adminName, email, password })
+      });
+
+      setToken(data.token);
+      setCanCreateAdmin(false);
+      window.localStorage.setItem("adminToken", data.token);
+      setMessage("Compte admin cree avec succes.");
+      await loadData();
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -209,10 +244,26 @@ export default function AdminDashboard() {
       <section className="admin-panel admin-panel--login">
         <div>
           <span className="eyebrow">Administration</span>
-          <h1>Connexion admin</h1>
-          <p>Connecte-toi pour gerer les images, videos et categories.</p>
+          <h1>{canCreateAdmin ? "Creer le premier admin" : "Connexion admin"}</h1>
+          <p>
+            {canCreateAdmin
+              ? "Aucun admin n'existe encore. Cree le premier compte pour proteger le dashboard."
+              : "Connecte-toi pour gerer les images, videos et categories."}
+          </p>
         </div>
-        <form className="form" onSubmit={login}>
+        <form className="form" onSubmit={canCreateAdmin ? createFirstAdmin : login}>
+          {canCreateAdmin ? (
+            <div className="field">
+              <label htmlFor="adminName">Nom admin</label>
+              <input
+                id="adminName"
+                value={adminName}
+                onChange={(event) => setAdminName(event.target.value)}
+                placeholder="Admin"
+                required
+              />
+            </div>
+          ) : null}
           <div className="field">
             <label htmlFor="email">Email</label>
             <input
@@ -236,7 +287,11 @@ export default function AdminDashboard() {
             />
           </div>
           <button className="button" type="submit" disabled={loading}>
-            {loading ? "Connexion..." : "Se connecter"}
+            {loading
+              ? "Traitement..."
+              : canCreateAdmin
+                ? "Creer le compte admin"
+                : "Se connecter"}
           </button>
           {message ? <p className="notice">{message}</p> : null}
         </form>
