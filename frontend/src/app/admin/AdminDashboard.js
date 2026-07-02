@@ -83,14 +83,24 @@ export default function AdminDashboard() {
 
   async function loadData() {
     try {
-      const [categoryData, contentData] = await Promise.all([
-        fetch(`${API_URL}/categories`).then((res) => res.json()),
-        fetch(`${API_URL}/contents?status=all`).then((res) => res.json())
+      const [categoryResponse, contentResponse] = await Promise.all([
+        fetch(`${API_URL}/categories`),
+        fetch(`${API_URL}/contents?status=all`)
       ]);
+
+      if (!categoryResponse.ok || !contentResponse.ok) {
+        throw new Error(`API inaccessible (${categoryResponse.status}/${contentResponse.status})`);
+      }
+
+      const [categoryData, contentData] = await Promise.all([
+        categoryResponse.json(),
+        contentResponse.json()
+      ]);
+
       setCategories(categoryData);
       setContents(contentData);
-    } catch {
-      setMessage("Impossible de charger les donnees.");
+    } catch (error) {
+      setMessage(`${error.message || "Impossible de charger les donnees."} Verifie NEXT_PUBLIC_API_URL: ${API_URL}`);
     }
   }
 
