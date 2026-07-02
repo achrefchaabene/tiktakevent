@@ -66,8 +66,16 @@ export default function AdminDashboard() {
     }
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || "Action impossible");
+      const text = await response.text().catch(() => "");
+      let error = {};
+
+      try {
+        error = text ? JSON.parse(text) : {};
+      } catch {
+        error = {};
+      }
+
+      throw new Error(error.message || `Action impossible (${response.status})`);
     }
 
     return response.json();
