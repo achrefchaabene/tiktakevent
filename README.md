@@ -39,7 +39,7 @@ npm run dev
 1. Creer un cluster MongoDB Atlas.
 2. Creer un compte Cloudinary.
 3. Remplir les variables dans `backend/.env`.
-4. Creer un admin avec une route seed ou directement dans MongoDB.
+4. Ouvrir `/admin` pour creer le premier compte admin si aucun admin n'existe encore.
 
 ## Deploiement Render + Vercel
 
@@ -57,12 +57,24 @@ Dans Render, cree un nouveau Web Service connecte au repo, puis utilise :
 Variables a ajouter dans Render :
 
 ```env
-MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster.mongodb.net/media_showcase
+MONGODB_URI=mongodb+srv://tiktakadmin:YOUR_DATABASE_USER_PASSWORD@TON_CLUSTER.mongodb.net/tiktakevent?retryWrites=true&w=majority
 JWT_SECRET=une_valeur_longue_et_secrete
 FRONTEND_URL=https://ton-site.vercel.app
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+```
+
+Dans `MONGODB_URI`, remplace seulement :
+
+- `tiktakadmin` par ton username MongoDB Atlas Database User
+- `YOUR_DATABASE_USER_PASSWORD` par le mot de passe du Database User
+- `TON_CLUSTER.mongodb.net` par le cluster copie depuis MongoDB Atlas > Connect > Drivers
+
+Exemple de forme finale :
+
+```env
+MONGODB_URI=mongodb+srv://tiktakadmin:Achref2345@media-showcase.xxxxx.mongodb.net/tiktakevent?retryWrites=true&w=majority
 ```
 
 Si tu veux autoriser plusieurs URLs frontend, separe-les par des virgules :
@@ -96,7 +108,9 @@ NEXT_PUBLIC_API_URL=https://ton-backend.onrender.com/api
 
 ### 4. Creation admin en production
 
-Pour creer un admin, renseigne temporairement ces variables dans Render :
+Option recommandee : ouvre `/admin` apres le deploiement. Si aucun admin n'existe, le site affiche directement le formulaire pour creer le premier compte admin.
+
+Option automatique : renseigne ces variables dans Render avant le deploiement :
 
 ```env
 ADMIN_NAME=Admin
@@ -104,4 +118,4 @@ ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=mot_de_passe_fort
 ```
 
-Puis lance la commande `npm run create-admin` depuis le shell Render. Retire ensuite `ADMIN_PASSWORD` des variables si tu ne veux pas le garder dans l'environnement.
+Le backend cree ce compte au demarrage si aucun admin avec cet email n'existe.
