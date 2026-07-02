@@ -12,11 +12,17 @@ const allowedOrigins = (process.env.FRONTEND_URL || "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 const localOriginPattern = /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d+$/;
+const vercelProjectPattern = /^https:\/\/tiktakevent[\w-]*\.vercel\.app$/;
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || localOriginPattern.test(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        localOriginPattern.test(origin) ||
+        vercelProjectPattern.test(origin)
+      ) {
         return callback(null, true);
       }
 
